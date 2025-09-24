@@ -1,0 +1,18 @@
+smolagents>=0.2.0
+transformers>=4.42.0
+Pillow>=10.2.0
+torch>=2.1.0
+openai
+groq
+streamlit>=1.25.0
+langchain
+langgraph
+langchain_community
+langchain-groq
+langchainhub
+duckduckgo-search
+ddgs
+# Optional future RAG dependencies (commented for now)
+# chromadb
+# faiss-cpu
+# sentence-transformers
