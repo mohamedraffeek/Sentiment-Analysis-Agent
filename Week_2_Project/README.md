@@ -1,4 +1,4 @@
-# SentimentVision Agent
+# CheerSearch Agent
 
 A modular multimodal agent that can hold conversations and classify the coarse facial sentiment (positive / negative / neutral) from an input image using a Vision Transformer (emotion classifier) wrapped as a tool via `smolagents`.
 

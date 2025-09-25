@@ -1,4 +1,4 @@
-"""Command-line entrypoint for the SentimentVision agent.
+"""Command-line entrypoint for the CheerSearch agent.
 
 Usage examples (after installing requirements):
   set GROQ_API_KEY=<your_key_here> or API_KEY=<your_key_here>
@@ -17,7 +17,7 @@ import shlex
 import sys
 from typing import Optional
 
-from agents.sentiment_agent import build_agent
+from agents.cheersearch_agent import build_agent
 from langchain.agents import AgentExecutor
 
 
@@ -31,7 +31,7 @@ def ensure_api_key() -> str:
 
 
 def print_banner():
-	print("SentimentVision Agent - Multimodal CLI")
+	print("CheerSearch Agent - Multimodal CLI")
 
 
 def handle_input(agent: AgentExecutor, args: list[str]):

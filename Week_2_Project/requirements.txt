@@ -8,10 +8,15 @@ streamlit>=1.25.0
 langchain
 langgraph
 langchain_community
+langchain_huggingface
 langchain-groq
 langchainhub
 duckduckgo-search
 ddgs
+sentence-transformers
+arxiv
+pymupdf
+tiktoken
 # Optional future RAG dependencies (commented for now)
 # chromadb
 # faiss-cpu

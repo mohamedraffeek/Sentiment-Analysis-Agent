@@ -1,4 +1,6 @@
-# tools/final_answer_tool.py
+"""Tool to return the final answer and end the agent run.
+"""
+
 from langchain.tools import tool
 from pydantic import BaseModel, Field
 

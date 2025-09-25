@@ -1,4 +1,4 @@
-"""Streamlit app for SentimentVision agent.
+"""Streamlit app for CheerSearch agent.
 
 Features:
 - Chat UI for user messages.
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from agents.sentiment_agent import build_agent, sentiment_tool
+from agents.cheersearch_agent import build_agent, sentiment_tool
 from tools.sentiment_vit_tool import SentimentViTTool
 
 # ---------------------------------------------------------------------
@@ -27,8 +27,8 @@ WORKSPACE_ROOT = Path(__file__).resolve().parent
 UPLOAD_DIR = WORKSPACE_ROOT / "data" / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-st.set_page_config(page_title="SentimentVision Chat", layout="wide")
-st.title("SentimentVision — Chat + Image Sentiment")
+st.set_page_config(page_title="CheerSearch", layout="wide")
+st.title("CheerSearch — Happily Productive ☺️")
 
 
 # ---------------------------------------------------------------------
@@ -102,6 +102,10 @@ def format_sentiment_result(parsed_result):
                 bar_length = int(score * 20)  # Scale to 20 chars
                 bar = "█" * bar_length + "░" * (20 - bar_length)
                 result_text += f"- {emotion.title()}: {bar} {score:.1%}\n"
+
+            # If the most dominant emotion is not positive, add an empathetic note
+            if sentiment == "negative":
+                result_text += "\nI'm sorry to see that you're feeling this way. Remember, it's okay to have tough days. You're doing great, and things will get better! 🌟"
 
         return result_text
     else:
@@ -184,6 +188,8 @@ with col1:
         with btn_col1:
             if st.button("🗑️ Clear", help="Clear conversation history"):
                 st.session_state["chat_history"] = []
+                st.session_state["processing"] = False
+                st.session_state["pending_input"] = None
                 st.rerun()
         with btn_col2:
             if st.button("🧠 Forget", help="Reset agent memory/context"):
@@ -196,7 +202,15 @@ with col1:
                 # Force agent rebuild to reset context
                 st.session_state.pop("agent", None)
                 st.session_state.pop("_agent_model_name", None)
+                st.session_state["processing"] = False
+                st.session_state["pending_input"] = None
                 st.rerun()
+
+    # Initialize processing state
+    if "processing" not in st.session_state:
+        st.session_state["processing"] = False
+    if "pending_input" not in st.session_state:
+        st.session_state["pending_input"] = None
 
     # Create a scrollable chat area with fixed height
     chat_container = st.container(height=400)
@@ -209,36 +223,54 @@ with col1:
                     st.chat_message("assistant").write(text)
         else:
             st.info("Start a conversation by typing a message below...")
+        
+        # Show loading spinner if processing
+        if st.session_state["processing"]:
+            with st.chat_message("assistant"):
+                with st.spinner("🤔 Thinking..."):
+                    # Process the pending input
+                    if st.session_state["pending_input"]:
+                        input_text = st.session_state["pending_input"]
+                        
+                        # Generate response
+                        if st.session_state.get("use_agent") and st.session_state.get("agent"):
+                            try:
+                                agent = st.session_state["agent"]
+                                result = agent.invoke({"input": input_text})
+                                reply = extract_reply(result)
+                                if isinstance(reply, dict) and "text" in reply:
+                                    reply = reply["text"]
+                                st.session_state["chat_history"].append(("assistant", reply))
+                            except Exception as e:
+                                st.session_state["chat_history"].append(("assistant", f"Agent error: {e}"))
+                        else:
+                            st.session_state["chat_history"].append(("assistant", "(Local mode) Received your message."))
+                        
+                        # Reset processing state
+                        st.session_state["processing"] = False
+                        st.session_state["pending_input"] = None
+                        st.rerun()
 
     # Input area at the bottom (Streamlit's chat_input)
-    user_input = st.chat_input("Type your message here...")
+    user_input = st.chat_input("Type your message here...", disabled=st.session_state["processing"])
 
     # Process message when submitted
-    if user_input:
-        # Add user message to history
+    if user_input and not st.session_state["processing"]:
+        # Add user message to history immediately
         st.session_state["chat_history"].append(("user", user_input))
-
-        # Generate response
-        if st.session_state.get("use_agent") and st.session_state.get("agent"):
-            try:
-                agent = st.session_state["agent"]
-                result = agent.invoke({"input": user_input})
-                reply = extract_reply(result)
-                if isinstance(reply, dict) and "text" in reply:
-                    reply = reply["text"]
-                st.session_state["chat_history"].append(("assistant", reply))
-            except Exception as e:
-                st.session_state["chat_history"].append(("assistant", f"Agent error: {e}"))
-        else:
-            st.session_state["chat_history"].append(("assistant", "(Local mode) Received your message."))
-
-        # Force rerun to show new messages and trigger auto-scroll
+        
+        # Set up processing state
+        st.session_state["processing"] = True
+        st.session_state["pending_input"] = user_input
+        
+        # Force rerun to show the user message and start processing
         st.rerun()
 
 
 # --- Image Upload ---
 with col2:
-    st.subheader("Upload Image for Sentiment")
+    st.subheader("Stay Cheerful!")
+    st.write("Upload an image of yourself. I need to make sure you're in a good mood while researching! 😊")
     uploaded = st.file_uploader(
         "Choose an image", type=["png", "jpg", "jpeg", "bmp", "webp"]
     )
@@ -299,4 +331,4 @@ with col2:
 # Footer
 # ---------------------------------------------------------------------
 st.sidebar.markdown("---")
-st.sidebar.caption("SentimentVision — Streamlit UI")
+st.sidebar.caption("CheerSearch — Streamlit UI")

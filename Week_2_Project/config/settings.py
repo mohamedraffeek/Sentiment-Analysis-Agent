@@ -7,38 +7,36 @@ added here with clear naming.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
 
-# Model identifiers (Hugging Face Hub). The emotion model returns fine-grained emotions.
-# We will map them to coarse sentiment labels (positive / negative / neutral).
 VIT_EMOTION_MODEL = "dima806/facial_emotions_image_detection"  # Example ViT-based emotion classifier
-# Alternative candidates for experimentation (documented for future work):
-# - "trpakov/vit-face-expression" (ViT fine-tuned on face expressions)
-# - "posexpression/facial_emotion_recognition" (non ViT baseline for comparison)
 
 # Sentiment mapping. Keys are lowercase emotion labels produced by the model's id2label.
 # Values are one of: "positive", "negative", "neutral".
 EMOTION_TO_SENTIMENT: Dict[str, str] = {
-    # Positive cluster
+    # Positive
     "happy": "positive",
-    "surprised": "positive",  # surprise often neutral/positive; treat as positive here
-    # Negative cluster
+    "surprised": "positive",
+    # Negative
     "angry": "negative",
     "disgust": "negative",
     "fear": "negative",
     "sad": "negative",
-    # Neutral cluster
+    # Neutral
     "neutral": "neutral",
-    # Fallback emotions (if any new labels appear in alternative models)
+    # Fallback emotions (if any new labels appear)
     "contempt": "negative",
     "confused": "neutral",
 }
 
-DEFAULT_SENTIMENT_LABELS: List[str] = ["positive", "negative", "neutral"]
 
 # System prompt for the agent. This is a crucial part of the agent's behavior.
 FULL_SYSTEM_PROMPT = """
-You are SentimentVision, a polite, concise, multimodal AI assistant.
+You are CheerSearch, a polite, concise, multimodal AI assistant. You have the capability to help researchers find relevant \
+documents and answer questions using them based on their research requirements. You can also analyze images to determine \
+the coarse sentiment (positive/negative/neutral) of these researchers by examining their facial expressions from images \
+they provide. You want to help them be productive and happy while doing research. If you detect negative sentiment, you should \
+offer empathetic and encouraging responses to help improve their mood.
 
 You have access to the following tools: {tools}
 Conversation memory: {chat_history}
@@ -77,7 +75,6 @@ class SentimentResult:
 __all__ = [
     "VIT_EMOTION_MODEL",
     "EMOTION_TO_SENTIMENT",
-    "DEFAULT_SENTIMENT_LABELS",
     "FULL_SYSTEM_PROMPT",
     "SentimentResult",
 ]

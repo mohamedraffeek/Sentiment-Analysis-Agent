@@ -1,4 +1,4 @@
-"""Construction of the SentimentVision conversational agent using LangChain + Groq.
+"""Construction of the CheerSearch conversational agent using LangChain + Groq.
 
 Uses an agent executor with ReACT pattern, integrating:
 - Groq LLM
@@ -23,7 +23,10 @@ from agents.agent_memory import ChatHistoryMemory
 from config.settings import FULL_SYSTEM_PROMPT
 from tools.sentiment_vit_tool import SentimentViTTool
 from tools.final_answer_tool import final_answer_tool
+from tools.rag_tool import RAGTool
 
+
+# =============== SentimentViT Tool Initialization ===============
 
 class SentimentToolSchema(BaseModel):
     image: str = Field(..., description="Path or base64 image string")
@@ -143,7 +146,19 @@ sentiment_tool = StructuredTool.from_function(
     args_schema=SentimentToolSchema,
 )
 
+# =============== End SentimentViT Tool Initialization ===============
+
+# =============== RAG Tool Initialization ===============
+
+rag_tool = RAGTool
+
+# =============== End RAG Tool Initialization ===============
+
+# =============== DuckDuckGo Search Tool Initialization ===============
+
 search_tool = DuckDuckGoSearchRun()
+
+# =============== End DuckDuckGo Search Tool Initialization ===============
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", FULL_SYSTEM_PROMPT),
@@ -175,7 +190,7 @@ def build_agent(
         temperature=0,
     )
 
-    tools = [final_answer_tool, sentiment_tool, search_tool]
+    tools = [final_answer_tool, sentiment_tool, search_tool, rag_tool]
 
     agent = create_react_agent(llm, tools, prompt)
 
