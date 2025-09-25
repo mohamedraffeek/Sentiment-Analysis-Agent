@@ -16,9 +16,42 @@ class RAG():
     """RAG class to encapsulate RAG functionality."""
 
     def __init__(self, docs_query: str, user_query: str):
-        model_kwargs = {'device': 'cpu'}
+        # Try GPU first, fallback to CPU
+        try:
+            import torch
+            if torch.cuda.is_available():
+                device = 'cuda'
+                print(f"[RAG] Using GPU (CUDA) for embeddings")
+            else:
+                device = 'cpu'
+                print(f"[RAG] CUDA not available, using CPU for embeddings")
+        except ImportError:
+            device = 'cpu'
+            print(f"[RAG] PyTorch not available, using CPU for embeddings")
+        
+        model_kwargs = {'device': device}
         encode_kwargs = {'normalize_embeddings': False}
-        self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDINGS_MODEL_NAME, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs)
+        
+        try:
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name=EMBEDDINGS_MODEL_NAME, 
+                model_kwargs=model_kwargs, 
+                encode_kwargs=encode_kwargs
+            )
+            print(f"[RAG] Successfully initialized embeddings on {device}")
+        except Exception as e:
+            # Fallback to CPU if GPU initialization fails
+            if device != 'cpu':
+                print(f"[RAG] GPU initialization failed ({e}), falling back to CPU")
+                model_kwargs = {'device': 'cpu'}
+                self.embeddings = HuggingFaceEmbeddings(
+                    model_name=EMBEDDINGS_MODEL_NAME, 
+                    model_kwargs=model_kwargs, 
+                    encode_kwargs=encode_kwargs
+                )
+                print(f"[RAG] Successfully initialized embeddings on CPU (fallback)")
+            else:
+                raise e
         print(f"[RAG] Embedding the user query...")
         self.query_embedding = self.embed_query(user_query)
         print(f"[RAG] User query embedded.")
